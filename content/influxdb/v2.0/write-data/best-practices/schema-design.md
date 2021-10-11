@@ -75,7 +75,7 @@ If reads and writes to InfluxDB start to slow down, you may have high series car
 
 Use the following conventions when naming your tag and field keys:
 
-- [Avoid keywords in tag and field keys](#avoid-keywords-as-tag-or-field-keys)
+- [Avoid keywords in tag and field keys](#avoid-using-reserved-keywords-as-tag-or-field-keys)
 - [Avoid the using the same tag and field key](#avoid-using-the-same-tag-and-field-key)
 - [Avoid encoding data in names](#avoid-encoding-data-in-names)
 - [Avoid more than one piece of information in one tag](#avoid-putting-more-than-one-piece-of-information-in-one-tag)
@@ -93,8 +93,9 @@ Avoid using the same name for a [tag key](/influxdb/v2.0/reference/glossary/#tag
 
 ### Avoid encoding data in names
 
+Avoid encoding data into measurement names, tag keys, or field keys.
 A measurement name should describe the schema.
-Use a different measurement name for each unique combination of [tag keys](/influxdb/v2.0/reference/glossary/#tag-key) and a [field keys](/influxdb/v2.0/reference/glossary/#field-key).
+Use a different measurement name for each unique combination of [tag keys](/influxdb/v2.0/reference/glossary/#tag-key) and [field keys](/influxdb/v2.0/reference/glossary/#field-key).
 
 For example, consider an air sensor measurement schema compared to a water quality measurement schema:
 
@@ -105,12 +106,9 @@ For example, consider an air sensor measurement schema compared to a water quali
 
 The measurement name describes the schema, the tags store common metadata, and the fields store variable numeric data.
 
-InfluxDB queries merge data that falls within the same [measurement](/influxdb/v2.0/reference/glossary/#measurement), so it's better to differentiate data with separate [tags](/influxdb/v2.0/reference/glossary/#tag) than with detailed measurement, tag, or field names. If you encode data in a measurement name or key, you must use a regular expression to query the data, making some queries less efficient and more complicated.
-
+If you encode data in a measurement name, tag key, or field key, you must use a regular expression to query the data, making some queries less efficient and more complicated.
 {{% oss-only %}}
-
-In addition, increased cardinality of measurement names and field keys may further hurt performance because indexing assumes that they will have low cardinality.
-
+In addition, the increased cardinality of measurement names and field keys may further hurt performance because indexing assumes that they will have low cardinality.
 {{% /oss-only %}}
 
 ### Example line protocol schemas
