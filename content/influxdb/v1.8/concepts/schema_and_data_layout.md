@@ -28,27 +28,24 @@ Your queries should guide what data you store in [tags](/influxdb/v1.8/concepts/
 
 ## Avoid too many series
 
-  ### Indexed data elements
+IndexDB indexes the following data elements to speed up reads:
 
-  IndexDB indexes the following data elements to speed up reads:
-
-  - [measurement](/influxdb/v1.8/concepts/glossary/#measurement)
-  - [tags](/influxdb/v1.8/concepts/glossary/#tag)
-
-  Each unique set of these elements forms a [series key](/influxdb/v1.8/concepts/glossary/#series-key).
-  [`SHOW SERIES CARDINALITY`](/influxdb/v1.8/query_language/spec/#show-series-cardinality) measures the number of unique [series](/influxdb/v1.8/concepts/glossary/#series) in your data.
+- [measurement](/influxdb/v1.8/concepts/glossary/#measurement)
+- [tags](/influxdb/v1.8/concepts/glossary/#tag)
 
 [Tag values](/influxdb/v1.8/concepts/glossary/#tag-value) are indexed and [field values](/influxdb/v1.8/concepts/glossary/#field-value) are not.
 This means that querying by tags is more performant than querying by fields.
 However, when too many indexes are created, both writes and reads may start to slow down.
 
+Each unique set of indexed data elements forms a [series key](/influxdb/v1.8/concepts/glossary/#series-key).
 [Tags](/influxdb/v1.8/concepts/glossary/#tag) containing highly variable information like unique IDs, hashes, and random strings lead to a large number of [series](/influxdb/v1.8/concepts/glossary/#series), also known as high [series cardinality](/influxdb/v1.8/concepts/glossary/#series-cardinality).
 High series cardinality is a primary driver of high memory usage for many database workloads.
 Therefore, to reduce memory overhead, consider storing high-cardinality values in fields rather than in tags.
 
 {{% note %}}
 
-If reads and writes to InfluxDB start to slow down, you may have high series cardinality (too many series). See [how to reduce series high cardinality](/influxdb/v1.8/troubleshooting/frequently-asked-questions/#how-can-i-remove-series-from-the-index).
+If reads and writes to InfluxDB start to slow down, you may have high series cardinality (too many series).
+See [how to find and reduce series high cardinality](/influxdb/v1.8/troubleshooting/frequently-asked-questions/#why-does-series-cardinality-matter).
 
 {{% /note %}}
 
