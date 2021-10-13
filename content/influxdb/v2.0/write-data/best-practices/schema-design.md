@@ -27,6 +27,8 @@ Your queries should guide what data you store in tags and what you store in fiel
 - Store data in fields if each data point contains a different value.
 - Store numeric values as fields ([tag values](/influxdb/v2.0/reference/glossary/#tag-value) only support string values).
 
+Store data in tag and field *values*, not in keys, for better performance and easier querying. To learn more, see [avoid encoding data in measurements and keys](#avoid-encoding-data-in-measurements-and-keys).
+
 ## Avoid too many series
 
 {{% oss-only %}}
@@ -120,12 +122,19 @@ Consider the following `air_sensor` and `water_quality_sensor` schemas:
 
 The measurement describes the schema, the tags store common metadata, and the fields store variable numeric data.
 
-#### Example line protocol schemas
-
-Consider the following schema represented by line protocol.
+**Recommended**: The following example stores metadata in separate `crop`, `plot`, and `region` tags. The `temp` field contains variable numeric data.
 
 ```
-Schema 1 - Data encoded in the measurement
+Schema 1 - Data encoded in tags (recommended)
+-------------
+weather_sensor,crop=blueberries,plot=1,region=north temp=50.1 1472515200000000000
+weather_sensor,crop=blueberries,plot=2,region=midwest temp=49.8 1472515200000000000
+```
+
+**Not recommended**: The following example stores metadata in the measurement.
+
+```
+Schema 2 - Data encoded in the measurement (not recommended)
 -------------
 blueberries.plot-1.north temp=50.1 1472515200000000000
 blueberries.plot-2.midwest temp=49.8 1472515200000000000
@@ -134,35 +143,27 @@ blueberries.plot-2.midwest temp=49.8 1472515200000000000
 The long measurements (`blueberries.plot-1.north`) with no tags are similar to Graphite metrics.
 Encoding the `plot` and `region` in the measurement makes the data more difficult to query.
 
-For example, calculating the average temperature of both plots 1 and 2 is not possible with schema 1.
-Compare this to Schema 2:
+For example, calculating the average temperature of both plots 1 and 2 is not possible with Schema 2.
 
-```
-Schema 2 - Data encoded in tags
--------------
-weather_sensor,crop=blueberries,plot=1,region=north temp=50.1 1472515200000000000
-weather_sensor,crop=blueberries,plot=2,region=midwest temp=49.8 1472515200000000000
-```
-
-#### Flux example to query schemas
+#### Compare queries for Schema 1 and Schema 2 
 
 Use Flux to calculate the average `temp` for blueberries in the `north` region:
 
 ```js
-// Schema 1 - Query for data encoded in the measurement
-from(bucket:"example-bucket")
-  |> range(start:2016-08-30T00:00:00Z)
-  |> filter(fn: (r) =>  r._measurement =~ /\.north$/ and r._field == "temp")
-  |> mean()
-
-// Schema 2 - Query for data encoded in tags
+// Schema 1 - Query for data encoded in tags (recommended)
 from(bucket:"example-bucket")
   |> range(start:2016-08-30T00:00:00Z)
   |> filter(fn: (r) =>  r._measurement == "weather_sensor" and r.region == "north" and r._field == "temp")
   |> mean()
+
+// Schema 2 - Query for data encoded in the measurement (not recommended)
+from(bucket:"example-bucket")
+  |> range(start:2016-08-30T00:00:00Z)
+  |> filter(fn: (r) =>  r._measurement =~ /\.north$/ and r._field == "temp")
+  |> mean()
 ```
 
-In Schema 1, we see that querying the `plot` and `region` in the measurement makes the data more difficult to query.
+In Schema 2, we see that querying the `plot` and `region` in the measurement requires regular expressions and makes the data more difficult to query.
 
 ### Avoid putting more than one piece of information in one tag
 
